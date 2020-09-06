@@ -4,11 +4,11 @@ import * as Constants from "../../constants";
 import { mkFontStyle } from "../../util";
 import { GameScene } from "../game";
 
-enum ActionKind {
+export enum ActionKind {
   Stop = "stop",
+  GoForward = "go forward",
   TurnLeft = "turn left",
   TurnRight = "turn right",
-  GoForward = "go forward",
 }
 
 export class Command {
@@ -72,15 +72,15 @@ export class Command {
       if (!this.isActive) return;
       switch (this.actionKind) {
         case ActionKind.Stop:
+          this.actionKind = ActionKind.GoForward;
+          break;
+        case ActionKind.GoForward:
           this.actionKind = ActionKind.TurnLeft;
           break;
         case ActionKind.TurnLeft:
           this.actionKind = ActionKind.TurnRight;
           break;
         case ActionKind.TurnRight:
-          this.actionKind = ActionKind.GoForward;
-          break;
-        case ActionKind.GoForward:
           this.actionKind = ActionKind.Stop;
           break;
       }

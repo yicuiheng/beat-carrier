@@ -26,5 +26,4 @@ export const COLORS = [
 ].map((str) => new Color(str));
 
 export const ACTIVE_COLOR = new Color("3cb371");
-// export const INACTIVE_COLOR = new Color("696969");
 export const INACTIVE_COLOR = COLORS[2];

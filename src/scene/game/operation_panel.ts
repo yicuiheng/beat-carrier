@@ -7,7 +7,8 @@ type Line = Phaser.GameObjects.Line;
 import * as Constants from "../../constants";
 import { GameScene } from "../game";
 import { mkFontStyle } from "../../util";
-import { CommandPanel, Command } from "./command_panel";
+import { CommandPanel, Command, ActionKind } from "./command_panel";
+import { MainPanel } from "./main_panel";
 
 enum Mode {
   Stop,
@@ -29,9 +30,14 @@ export class OperationPanel {
   private prevTime = 0;
 
   private commandPanel: CommandPanel;
+  private mainPanel: MainPanel;
   private scene: GameScene;
 
-  constructor(scene: GameScene, commandPanel: CommandPanel) {
+  constructor(
+    scene: GameScene,
+    commandPanel: CommandPanel,
+    mainPanel: MainPanel
+  ) {
     this.startButtton = scene.add.rectangle(
       Constants.SCREEN_WIDTH / 2,
       Constants.SCREEN_HEIGHT - 25,
@@ -95,6 +101,7 @@ export class OperationPanel {
     this.timeline.visible = false;
 
     this.commandPanel = commandPanel;
+    this.mainPanel = mainPanel;
     this.scene = scene;
   }
 
@@ -131,6 +138,19 @@ export class OperationPanel {
         ) {
           const command = this.commandPanel.commands[cmdIdx];
           if (!command.isActive || !command.beat[beatIdx]) continue;
+          switch (command.actionKind) {
+            case ActionKind.Stop:
+              break;
+            case ActionKind.GoForward:
+              this.mainPanel.player.goForward();
+              break;
+            case ActionKind.TurnLeft:
+              this.mainPanel.player.turnLeft();
+              break;
+            case ActionKind.TurnRight:
+              this.mainPanel.player.turnRight();
+              break;
+          }
           this.scene.beatSounds[cmdIdx].play();
         }
       }
