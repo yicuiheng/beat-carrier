@@ -11,7 +11,7 @@ enum ActionKind {
   GoForward = "go forward",
 }
 
-class Command {
+export class Command {
   actionKind: ActionKind;
   beat: Array<boolean>;
   isActive: boolean;
@@ -69,6 +69,7 @@ class Command {
     this.actionText.setOrigin(0);
     this.actionText.setInteractive();
     this.actionText.on("pointerdown", () => {
+      if (!this.isActive) return;
       switch (this.actionKind) {
         case ActionKind.Stop:
           this.actionKind = ActionKind.TurnLeft;
@@ -99,7 +100,6 @@ class Command {
       this.beatRects[i].on("pointerdown", () => {
         if (this.isActive) {
           this.beat[i] = !this.beat[i];
-          if (this.beat[i]) scene.drumSound?.play();
         }
       });
     }
@@ -107,7 +107,7 @@ class Command {
     this.scene = scene;
   }
 
-  update() {
+  update(): void {
     if (this.isActive) {
       this.activateButton.fillColor = Constants.ACTIVE_COLOR.toNumber();
     } else {
@@ -139,7 +139,7 @@ export class CommandPanel {
   static readonly PANEL_MIN_Y: integer = 0;
 
   private background: Phaser.GameObjects.Rectangle;
-  private commands: Array<Command>;
+  commands: Array<Command>;
 
   constructor(scene: GameScene, nCommands: integer) {
     this.background = scene.add.rectangle(
@@ -157,7 +157,7 @@ export class CommandPanel {
     }
   }
 
-  update() {
+  update(): void {
     for (const command of this.commands) command.update();
   }
 }

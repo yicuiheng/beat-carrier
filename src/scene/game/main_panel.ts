@@ -51,7 +51,7 @@ export class MainPanel {
     }
   }
 
-  update() {
+  update(): void {
     if (this.map[this.playerY] && this.map[this.playerY][this.playerX]) {
       this.map[this.playerY][
         this.playerX

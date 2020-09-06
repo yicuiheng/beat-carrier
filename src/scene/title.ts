@@ -7,7 +7,7 @@ export class TitleScene extends Phaser.Scene {
   private titleText?: Phaser.GameObjects.Text;
   private startText?: Phaser.GameObjects.Text;
 
-  create() {
+  create(): void {
     this.cameras.main.setBackgroundColor(Constants.COLORS[7].toString());
 
     this.titleText = this.add.text(
