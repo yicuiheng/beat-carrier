@@ -22,6 +22,10 @@ export class Player {
   private polygon: Phaser.GameObjects.Polygon;
   private mainPanel: MainPanel;
 
+  private initX: integer;
+  private initY: integer;
+  private initDir: Direction;
+
   constructor(
     scene: GameScene,
     mainPanel: MainPanel,
@@ -32,6 +36,9 @@ export class Player {
     this.x = x;
     this.y = y;
     this.dir = dir;
+    this.initX = x;
+    this.initY = y;
+    this.initDir = dir;
 
     const points = [
       [-Player.WIDTH / 2, -Player.HEIGHT / 2],
@@ -51,7 +58,20 @@ export class Player {
     this.mainPanel = mainPanel;
   }
 
+  setInit(): void {
+    this.x = this.initX;
+    this.y = this.initY;
+    this.dir = this.initDir;
+  }
+
+  isAlreadyGoal(): boolean {
+    return (
+      this.mainPanel.map[this.y][this.x].fillColor ==
+      Constants.GOAL_COLOR.toNumber()
+    );
+  }
   turnLeft(): void {
+    if (this.isAlreadyGoal()) return;
     switch (this.dir) {
       case Direction.Up:
         this.dir = Direction.Left;
@@ -69,6 +89,7 @@ export class Player {
   }
 
   turnRight(): void {
+    if (this.isAlreadyGoal()) return;
     switch (this.dir) {
       case Direction.Up:
         this.dir = Direction.Right;
@@ -86,6 +107,7 @@ export class Player {
   }
 
   goForward(): void {
+    if (this.isAlreadyGoal()) return;
     let targetX = this.x;
     let targetY = this.y;
     switch (this.dir) {
@@ -102,9 +124,10 @@ export class Player {
         targetX = clamp(this.x - 1, 0, MainPanel.WIDTH - 1);
         break;
     }
+    const targetColor = this.mainPanel.map[targetY][targetX].fillColor;
     if (
-      this.mainPanel.map[targetY][targetX].fillColor ==
-      Constants.COLORS[0].toNumber()
+      targetColor === Constants.COLORS[0].toNumber() ||
+      targetColor === Constants.GOAL_COLOR.toNumber()
     ) {
       this.x = targetX;
       this.y = targetY;
@@ -156,8 +179,9 @@ export class MainPanel {
 
   map: Array<Array<Phaser.GameObjects.Rectangle>> = [];
   player: Player;
+  scene: GameScene;
 
-  constructor(scene: GameScene, map: Array<string>) {
+  constructor(scene: GameScene, map: Array<string>, dir: Direction) {
     this.background = scene.add.rectangle(
       MainPanel.PANEL_MIN_X + MainPanel.PANEL_WIDTH / 2,
       MainPanel.PANEL_MIN_Y + MainPanel.PANEL_HEIGHT / 2,
@@ -174,12 +198,12 @@ export class MainPanel {
       for (let x = 0; x < MainPanel.WIDTH; x++) {
         let color = Constants.COLORS[0].toNumber();
         if (map[y][x] === "#") {
-          color = Constants.COLORS[3].toNumber();
+          color = Constants.COLORS[Constants.WALL_COLOR_ID].toNumber();
         } else if (map[y][x] == "P") {
           playerX = x;
           playerY = y;
-        } else if (map[y][x] == "T") {
-          color = Constants.TARGET_COLOR.toNumber();
+        } else if (map[y][x] == "G") {
+          color = Constants.GOAL_COLOR.toNumber();
         }
         this.map[y][x] = scene.add.rectangle(
           MainPanel.PANEL_MIN_X +
@@ -195,7 +219,8 @@ export class MainPanel {
         this.map[y][x].visible = true;
       }
     }
-    this.player = new Player(scene, this, playerX, playerY);
+    this.player = new Player(scene, this, playerX, playerY, dir);
+    this.scene = scene;
   }
 
   update(): void {

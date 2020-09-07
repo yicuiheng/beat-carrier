@@ -29,10 +29,10 @@ export class Command {
   private activateButton: Phaser.GameObjects.Ellipse;
   private actionText: Phaser.GameObjects.Text;
   private beatRects: Array<Phaser.GameObjects.Rectangle>;
-
   private scene: GameScene;
 
   constructor(scene: GameScene, number: integer) {
+    this.scene = scene;
     this.actionKind = ActionKind.Stop;
     this.beat = new Array<boolean>(Command.N_BEATS);
     this.number = number;
@@ -69,7 +69,7 @@ export class Command {
     this.actionText.setOrigin(0);
     this.actionText.setInteractive();
     this.actionText.on("pointerdown", () => {
-      if (!this.isActive) return;
+      if (this.scene.operationPanel?.isVerifying) return;
       switch (this.actionKind) {
         case ActionKind.Stop:
           this.actionKind = ActionKind.GoForward;
@@ -98,13 +98,11 @@ export class Command {
       this.beatRects[i].setOrigin(0.5);
       this.beatRects[i].setInteractive();
       this.beatRects[i].on("pointerdown", () => {
-        if (this.isActive) {
+        if (!this.scene.operationPanel?.isVerifying) {
           this.beat[i] = !this.beat[i];
         }
       });
     }
-
-    this.scene = scene;
   }
 
   update(): void {
@@ -113,7 +111,9 @@ export class Command {
     } else {
       this.activateButton.fillColor = Constants.INACTIVE_COLOR.toNumber();
     }
-    const baseColor = this.isActive ? 4 : 3;
+    let baseColor = 2;
+    if (this.isActive) baseColor++;
+    if (!this.scene.operationPanel?.isVerifying) baseColor++;
     this.background.fillColor = Constants.COLORS[baseColor].toNumber();
 
     this.actionText.text = this.actionKind;
@@ -139,7 +139,9 @@ export class CommandPanel {
   static readonly PANEL_MIN_Y: integer = 0;
 
   private background: Phaser.GameObjects.Rectangle;
+  private noteText: Phaser.GameObjects.Text;
   commands: Array<Command>;
+  scene: GameScene;
 
   constructor(scene: GameScene, nCommands: integer) {
     this.background = scene.add.rectangle(
@@ -155,9 +157,22 @@ export class CommandPanel {
     for (let i = 0; i < nCommands; i++) {
       this.commands.push(new Command(scene, i));
     }
+
+    this.noteText = scene.add.text(
+      CommandPanel.PANEL_WIDTH / 2,
+      nCommands * Command.HEIGHT + Command.HEIGHT,
+      "cannot change beats\nwhile verifying",
+      mkFontStyle(7, 16)
+    );
+    this.noteText.setOrigin(0.5);
+    this.noteText.visible = false;
+
+    this.scene = scene;
   }
 
   update(): void {
     for (const command of this.commands) command.update();
+
+    this.noteText.visible = this.scene.operationPanel?.isVerifying || false;
   }
 }

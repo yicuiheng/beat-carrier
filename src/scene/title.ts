@@ -4,8 +4,9 @@ import * as Constants from "../constants";
 import { mkFontStyle } from "../util";
 import * as Stage1 from "../stage/stage1";
 import * as Stage2 from "../stage/stage2";
+import * as Stage3 from "../stage/stage3";
 
-const N_STAGES = 2;
+const N_STAGES = 3;
 
 export class TitleScene extends Phaser.Scene {
   private titleText?: Phaser.GameObjects.Text;
@@ -21,7 +22,8 @@ export class TitleScene extends Phaser.Scene {
       mkFontStyle(0, 48)
     );
     this.titleText.setOrigin(0.5);
-    const stageMaps = [Stage1.MAP, Stage2.MAP];
+    const stageMaps = [Stage1.MAP, Stage2.MAP, Stage3.MAP];
+    const stageDir = [Stage1.INIT_DIR, Stage2.INIT_DIR, Stage3.INIT_DIR];
 
     for (let stageIdx = 0; stageIdx < N_STAGES; stageIdx++) {
       let stageText = this.stageTexts[stageIdx];
@@ -37,7 +39,11 @@ export class TitleScene extends Phaser.Scene {
         .setInteractive()
         .on("pointerdown", () => {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          this.scene.start("game", stageMaps[stageIdx]);
+          this.scene.start("game", {
+            map: stageMaps[stageIdx],
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            dir: stageDir[stageIdx],
+          });
         })
         .on("pointerover", (_pointer: any) => {
           stageText.text = "> " + stageText.text;
