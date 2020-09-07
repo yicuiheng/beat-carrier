@@ -1,6 +1,6 @@
 import * as Phaser from "phaser";
 
-import { MainPanel, Player } from "./game/main_panel";
+import { MainPanel } from "./game/main_panel";
 import { CommandPanel } from "./game/command_panel";
 import { OperationPanel } from "./game/operation_panel";
 
@@ -8,12 +8,17 @@ export class GameScene extends Phaser.Scene {
   private mainPanel?: MainPanel;
   private commandPanel?: CommandPanel;
   private operationPanel?: OperationPanel;
+  private map: Array<string> = [];
 
   drumSound?: Phaser.Sound.BaseSound;
   hatSound?: Phaser.Sound.BaseSound;
   snareSound?: Phaser.Sound.BaseSound;
   symbalSound?: Phaser.Sound.BaseSound;
   beatSounds = new Array<Phaser.Sound.BaseSound>(4);
+
+  init(map: Array<string>): void {
+    this.map = map;
+  }
 
   preload(): void {
     this.load.audio("drum", "./sounds/drum.wav");
@@ -24,7 +29,7 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     const nCommand = 4;
-    this.mainPanel = new MainPanel(this, 20, 15);
+    this.mainPanel = new MainPanel(this, this.map);
     this.commandPanel = new CommandPanel(this, nCommand);
     this.operationPanel = new OperationPanel(
       this,

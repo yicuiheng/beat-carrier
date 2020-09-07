@@ -27,3 +27,4 @@ export const COLORS = [
 
 export const ACTIVE_COLOR = new Color("3cb371");
 export const INACTIVE_COLOR = COLORS[2];
+export const TARGET_COLOR = new Color("00ced1");

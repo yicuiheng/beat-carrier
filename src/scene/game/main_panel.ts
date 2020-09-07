@@ -16,29 +16,39 @@ export class Player {
   y: integer;
   dir: Direction;
 
-  static readonly WIDTH = 15;
-  static readonly HEIGHT = 15;
+  static readonly WIDTH = 30;
+  static readonly HEIGHT = 30;
 
-  private rect: Phaser.GameObjects.Rectangle;
-  private triangle: Phaser.GameObjects.Triangle;
+  private polygon: Phaser.GameObjects.Polygon;
+  private mainPanel: MainPanel;
 
-  constructor(scene: GameScene, x: integer, y: integer, dir = Direction.Right) {
+  constructor(
+    scene: GameScene,
+    mainPanel: MainPanel,
+    x: integer,
+    y: integer,
+    dir = Direction.Right
+  ) {
     this.x = x;
     this.y = y;
     this.dir = dir;
 
-    this.rect = scene.add.rectangle(
+    const points = [
+      [-Player.WIDTH / 2, -Player.HEIGHT / 2],
+      [-Player.WIDTH / 2, Player.HEIGHT / 2],
+      [Player.WIDTH / 2, Player.HEIGHT / 2],
+      [Player.WIDTH, 0],
+      [Player.WIDTH / 2, -Player.HEIGHT / 2],
+    ];
+    this.polygon = scene.add.polygon(
       Constants.SCREEN_WIDTH / 4 + x * MainPanel.CHIP_WIDTH + Player.WIDTH / 2,
       y * MainPanel.CHIP_HEIGHT + Player.HEIGHT / 2,
-      Player.WIDTH,
-      Player.HEIGHT,
+      points,
       Constants.COLORS[7].toNumber()
     );
-    this.rect.setOrigin(0.5);
+    this.polygon.setOrigin(0);
 
-    this.triangle = scene.add.triangle();
-    this.triangle.isFilled = true;
-    this.triangle.fillColor = Constants.COLORS[7].toNumber();
+    this.mainPanel = mainPanel;
   }
 
   turnLeft(): void {
@@ -76,74 +86,57 @@ export class Player {
   }
 
   goForward(): void {
+    let targetX = this.x;
+    let targetY = this.y;
     switch (this.dir) {
       case Direction.Up:
-        this.y = clamp(this.y - 1, 0, MainPanel.HEIGHT);
+        targetY = clamp(this.y - 1, 0, MainPanel.HEIGHT - 1);
         break;
       case Direction.Right:
-        this.x = clamp(this.x + 1, 0, MainPanel.WIDTH);
+        targetX = clamp(this.x + 1, 0, MainPanel.WIDTH - 1);
         break;
       case Direction.Down:
-        this.y = clamp(this.y + 1, 0, MainPanel.HEIGHT);
+        targetY = clamp(this.y + 1, 0, MainPanel.HEIGHT - 1);
         break;
       case Direction.Left:
-        this.x = clamp(this.x - 1, 0, MainPanel.WIDTH);
+        targetX = clamp(this.x - 1, 0, MainPanel.WIDTH - 1);
         break;
+    }
+    if (
+      this.mainPanel.map[targetY][targetX].fillColor ==
+      Constants.COLORS[0].toNumber()
+    ) {
+      this.x = targetX;
+      this.y = targetY;
     }
   }
 
   update(): void {
-    this.rect.x =
+    const targetX =
       Constants.SCREEN_WIDTH / 4 +
       this.x * MainPanel.CHIP_WIDTH +
       Player.WIDTH / 2;
-    this.rect.y = this.y * MainPanel.CHIP_HEIGHT + Player.HEIGHT / 2;
-
-    this.triangle.x = this.rect.x + 71 - Player.WIDTH / 2;
-    this.triangle.y = this.rect.y + 71 - Player.WIDTH / 2;
-    switch (this.dir) {
-      case Direction.Up:
-        this.triangle.setTo(
-          -Player.WIDTH / 2,
-          -Player.HEIGHT / 2,
-          Player.WIDTH / 2,
-          -Player.HEIGHT / 2,
-          0,
-          -Player.HEIGHT
-        );
-        break;
-      case Direction.Right:
-        this.triangle.setTo(
-          Player.WIDTH / 2,
-          -Player.HEIGHT / 2,
-          Player.WIDTH / 2,
-          Player.HEIGHT / 2,
-          Player.WIDTH,
-          0
-        );
-        break;
-      case Direction.Down:
-        this.triangle.setTo(
-          -Player.WIDTH / 2,
-          Player.HEIGHT / 2,
-          Player.WIDTH / 2,
-          Player.HEIGHT / 2,
-          0,
-          Player.HEIGHT
-        );
-        break;
-      case Direction.Left:
-        this.triangle.setTo(
-          -Player.WIDTH / 2,
-          -Player.HEIGHT / 2,
-          -Player.WIDTH / 2,
-          Player.HEIGHT / 2,
-          -Player.WIDTH,
-          0
-        );
-        break;
-    }
-    console.log(this.triangle);
+    this.polygon.x = targetX * 0.1 + this.polygon.x * 0.9;
+    const targetY = this.y * MainPanel.CHIP_HEIGHT + Player.HEIGHT / 2;
+    this.polygon.y = targetY * 0.1 + this.polygon.y * 0.9;
+    const calcNextAngle = (x: number, target: number): number => {
+      if (target - x <= 180) {
+        return x * 0.9 + target * 0.1;
+      } else {
+        return (x + 360) * 0.9 + target * 0.1;
+      }
+    };
+    const targetAngle =
+      this.dir == Direction.Right
+        ? 0
+        : this.dir == Direction.Down
+        ? 90
+        : this.dir == Direction.Left
+        ? 180
+        : this.dir == Direction.Up
+        ? 270
+        : 0; // unreachable
+    this.polygon.angle = calcNextAngle(this.polygon.angle, targetAngle);
   }
 }
 
@@ -156,15 +149,15 @@ export class MainPanel {
   static readonly CHIP_WIDTH = Player.WIDTH;
   static readonly CHIP_HEIGHT = Player.HEIGHT;
 
-  static readonly WIDTH = 40;
-  static readonly HEIGHT = 30;
+  static readonly WIDTH = 20;
+  static readonly HEIGHT = 15;
 
   private background: Phaser.GameObjects.Rectangle;
-  private map: Array<Array<Phaser.GameObjects.Rectangle>> = [];
 
+  map: Array<Array<Phaser.GameObjects.Rectangle>> = [];
   player: Player;
 
-  constructor(scene: GameScene, playerX: integer, playerY: integer) {
+  constructor(scene: GameScene, map: Array<string>) {
     this.background = scene.add.rectangle(
       MainPanel.PANEL_MIN_X + MainPanel.PANEL_WIDTH / 2,
       MainPanel.PANEL_MIN_Y + MainPanel.PANEL_HEIGHT / 2,
@@ -174,9 +167,20 @@ export class MainPanel {
     );
     this.background.setOrigin(0.5);
     this.map = new Array<Array<Phaser.GameObjects.Rectangle>>(MainPanel.HEIGHT);
+    let playerX = -1;
+    let playerY = -1;
     for (let y = 0; y < MainPanel.HEIGHT; y++) {
       this.map[y] = new Array<Phaser.GameObjects.Rectangle>(MainPanel.WIDTH);
       for (let x = 0; x < MainPanel.WIDTH; x++) {
+        let color = Constants.COLORS[0].toNumber();
+        if (map[y][x] === "#") {
+          color = Constants.COLORS[3].toNumber();
+        } else if (map[y][x] == "P") {
+          playerX = x;
+          playerY = y;
+        } else if (map[y][x] == "T") {
+          color = Constants.TARGET_COLOR.toNumber();
+        }
         this.map[y][x] = scene.add.rectangle(
           MainPanel.PANEL_MIN_X +
             MainPanel.CHIP_WIDTH * x +
@@ -186,13 +190,12 @@ export class MainPanel {
             MainPanel.CHIP_HEIGHT / 2,
           MainPanel.CHIP_WIDTH - 1,
           MainPanel.CHIP_HEIGHT - 1,
-          Constants.COLORS[0].toNumber()
+          color
         );
-        this.map[y][x].setOrigin(0.5);
         this.map[y][x].visible = true;
       }
     }
-    this.player = new Player(scene, playerX, playerY);
+    this.player = new Player(scene, this, playerX, playerY);
   }
 
   update(): void {
