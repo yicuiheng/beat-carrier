@@ -19,7 +19,7 @@ export class Player {
   static readonly WIDTH = 30;
   static readonly HEIGHT = 30;
 
-  private polygon: Phaser.GameObjects.Polygon;
+  polygon: Phaser.GameObjects.Polygon;
   private mainPanel: MainPanel;
 
   private initX: integer;

@@ -3,6 +3,7 @@ import * as Phaser from "phaser";
 import { TitleScene } from "./scene/title";
 import { GameScene } from "./scene/game";
 import * as Constants from "./constants";
+import { TutorialScene } from "./scene/tutorial";
 
 class Main extends Phaser.Game {
   constructor() {
@@ -16,6 +17,7 @@ class Main extends Phaser.Game {
     };
     super(config);
     this.scene.add("title", TitleScene, false);
+    this.scene.add("tutorial", TutorialScene, false);
     this.scene.add("game", GameScene, false);
     this.scene.start("title");
   }

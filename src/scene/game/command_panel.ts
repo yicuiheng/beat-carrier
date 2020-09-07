@@ -57,7 +57,8 @@ export class Command {
     this.activateButton.setOrigin(0.5);
     this.activateButton.setInteractive();
     this.activateButton.on("pointerdown", () => {
-      this.isActive = !this.isActive;
+      if (!this.scene.operationPanel?.isVerifying)
+        this.isActive = !this.isActive;
     });
 
     this.actionText = scene.add.text(

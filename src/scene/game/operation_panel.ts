@@ -15,6 +15,8 @@ export class OperationPanel {
   static readonly PANEL_MIN_Y = (Constants.SCREEN_HEIGHT * 3) / 4;
   static readonly BEAT_WIDTH = Constants.SCREEN_WIDTH / (4 * Command.N_BEATS);
 
+  static readonly VERIFY_BUTTON_WIDTH: integer = 160;
+
   private background: Rectangle;
 
   private returnToTitleText: Text;
