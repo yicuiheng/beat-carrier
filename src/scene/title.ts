@@ -20,7 +20,7 @@ export class TitleScene extends Phaser.Scene {
     this.titleText = this.add.text(
       Constants.SCREEN_WIDTH / 2,
       (Constants.SCREEN_HEIGHT * 5) / 12,
-      "- Beat Carrior -",
+      "- Beat Carrier -",
       mkFontStyle(0, 48)
     );
     this.titleText.setOrigin(0.5);
