@@ -71,7 +71,7 @@ export class OperationPanel {
       this.scene.mainPanel?.player.setInit();
       if (this.isVerifying) {
         this.startTime = Date.now();
-        this.prevTime = Date.now();
+        this.prevTime = this.startTime - 10;
       }
     });
     this.wallRect = scene.add.rectangle(
@@ -176,7 +176,7 @@ export class OperationPanel {
     const prevX = timeToPos(this.prevTime);
     if (
       this.timeline.x % OperationPanel.BEAT_WIDTH <
-      prevX % OperationPanel.BEAT_WIDTH
+      (prevX + OperationPanel.BEAT_WIDTH) % OperationPanel.BEAT_WIDTH
     ) {
       const beatIdx =
         ((this.timeline.x / OperationPanel.BEAT_WIDTH) | 0) % Command.N_BEATS;
